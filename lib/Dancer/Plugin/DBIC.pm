@@ -7,6 +7,7 @@ use warnings;
 use Dancer::Plugin;
 use DBIx::Class;
 use DBIx::Class::Schema::Loader;
+use Dancer::ModuleLoader;
 
 =head1 SYNOPSIS
 
@@ -108,10 +109,9 @@ register schema => sub {
 
     if ($schema_class) {
         $schema_class =~ s/-/::/g;
-        eval "use $schema_class";
-        if ( my $err = $@ ) {
-            die "error while loading $schema_class : $err";
-        }
+        my ($res, $error) = Dancer::ModuleLoader->require($schema_class);
+        $res
+          or die "error while loading $schema_class : $error";
         $schemas->{$name} = $schema_class->connect(@conn_info)
     } else {
         $schemas->{$name} = DBIx::Class::Schema::Loader->connect(@conn_info);
